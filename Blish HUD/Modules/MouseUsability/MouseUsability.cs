@@ -296,8 +296,8 @@ namespace Blish_HUD.Modules.MouseUsability {
             highlightColor.LeftMouseButtonPressed += delegate { colorPicker.AssociatedColorBox = highlightColor; };
             outlineColor.LeftMouseButtonPressed += delegate { colorPicker.AssociatedColorBox = outlineColor; };
 
-            highlightColor.OnColorChanged += delegate { HorizontalHighlight.HighlightColor = highlightColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.HighlightColor = highlightColor.Color.Leather.Rgb.ToXnaColor(); };
-            outlineColor.OnColorChanged += delegate { HorizontalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); };
+            highlightColor.ColorChanged += delegate { HorizontalHighlight.HighlightColor = highlightColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.HighlightColor = highlightColor.Color.Leather.Rgb.ToXnaColor(); };
+            outlineColor.ColorChanged += delegate { HorizontalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); };
 
             colorPicker.AssociatedColorBox = highlightColor;
 

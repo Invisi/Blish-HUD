@@ -15,38 +15,52 @@ namespace Blish_HUD.Controls {
 
         private const int COLOR_SIZE = 32;
         private const int COLOR_PADDING = 0;
+        
+        public event EventHandler<ColorBox.ColorChangedEventArgs> SelectedColorChanged;
 
-        public event EventHandler<EventArgs> SelectedColorChanged;
+        protected virtual void OnSelectedColorChanged(ColorBox.ColorChangedEventArgs e) {
+            this.SelectedColorChanged?.Invoke(this, e);
+        }
 
-        public ObservableCollection<BHGw2Api.DyeColor> Colors { get; protected set; }
+        public ObservableCollection<Color> Colors { get; protected set; }
 
-        private Dictionary<BHGw2Api.DyeColor, ColorBox> ColorBoxes;
+        private Dictionary<string, ColorBox> ColorBoxes;
         
         private int hColors;
 
-        private BHGw2Api.DyeColor _selectedColor;
-        public BHGw2Api.DyeColor SelectedColor { get { return _selectedColor; } protected set { if (_selectedColor != value) { _selectedColor = value; if (this.AssociatedColorBox != null) {
-            this.AssociatedColorBox.Color = value; } this.SelectedColorChanged?.Invoke(this, new EventArgs()); } } }
+        private Color _selectedColor;
+        public Color SelectedColor {
+            get => _selectedColor;
+            protected set {
+                if (_selectedColor == value) return;
 
-        private ColorBox _associatedColorBox;
-        public ColorBox AssociatedColorBox {
-            get {
-                return _associatedColorBox;
-            }
-            set {
-                if (_associatedColorBox != value) {
-                    if (_associatedColorBox != null) _associatedColorBox.Selected = false;
+                var previousColor = _selectedColor;
 
-                    _associatedColorBox = value;
-                    _associatedColorBox.Selected = true;
-                    this.SelectedColor = this.AssociatedColorBox.Color;
+                _selectedColor = value;
+                if (this.AssociatedColorBox != null) {
+                    this.AssociatedColorBox.Color = value;
+                    OnSelectedColorChanged(new ColorBox.ColorChangedEventArgs(previousColor, _selectedColor));
                 }
             }
         }
 
+        private ColorBox _associatedColorBox;
+        public ColorBox AssociatedColorBox {
+            get => _associatedColorBox;
+            set {
+                if (_associatedColorBox == value) return;
+
+                if (_associatedColorBox != null) _associatedColorBox.Selected = false;
+
+                _associatedColorBox = value;
+                _associatedColorBox.Selected = true;
+                this.SelectedColor = this.AssociatedColorBox.Color;
+            }
+        }
+
         public ColorPicker() : base() {
-            this.Colors = new ObservableCollection<BHGw2Api.DyeColor>();
-            ColorBoxes = new Dictionary<BHGw2Api.DyeColor, ColorBox>();
+            this.Colors = new ObservableCollection<Color>();
+            ColorBoxes = new Dictionary<string, ColorBox>();
 
             this.ContentRegion = new Rectangle(COLOR_PADDING, COLOR_PADDING, this.Width - (COLOR_PADDING * 2), this.Height - (COLOR_PADDING * 2));
 
@@ -57,7 +71,7 @@ namespace Blish_HUD.Controls {
             // Remove any items that were removed (first because moving an item in a collection will put
             // that item in both OldItems and NewItems)
             if (e.OldItems != null) {
-                foreach (BHGw2Api.DyeColor delItem in e.OldItems) {
+                foreach (Color delItem in e.OldItems) {
                     if (ColorBoxes.ContainsKey(delItem)) {
                         ColorBoxes[delItem].Dispose();
                         ColorBoxes.Remove(delItem);

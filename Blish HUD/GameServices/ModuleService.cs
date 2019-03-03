@@ -40,7 +40,7 @@ namespace Blish_HUD {
             RegisterModule(new Modules.Compass());
             // RegisterModule(new Modules.RangeCircles());
             RegisterModule(new Modules.PoiLookup.PoiLookup());
-            // RegisterModule(new Modules.MouseUsability.MouseUsability());
+            RegisterModule(new Modules.MouseUsability.MouseUsability());
             // RegisterModule(new Modules.MarkersAndPaths.MarkersAndPaths());
         }
 
