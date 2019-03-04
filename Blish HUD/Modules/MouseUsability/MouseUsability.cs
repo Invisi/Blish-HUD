@@ -81,15 +81,12 @@ namespace Blish_HUD.Modules.MouseUsability {
             Prereq.Start();
         }
 
-        // TODO: this is incredibly nasty and should definitely not be here over pretty much any other location
-        private List<DyeColor> AllColors;
-
         private async void MakeAvailable() {
             // TODO: this is incredibly nasty and should definitely not be here over pretty much any other location
-            AllColors = await ApiItem.CallForManyAsync<DyeColor>("/v2/colors?ids=all", 5.Days(), true);
+            //AllColors = await ApiItem.CallForManyAsync<DyeColor>("/v2/colors?ids=all", 5.Days(), true);
 
             // Add tab with settings in the main Blish HUD window
-            GameServices.GetService<DirectorService>().BlishHudWindow.AddTab("Mouse Usability", "mouse-icon", BuildSettingPanel());
+            GameService.Director.BlishHudWindow.AddTab("Mouse Usability", "mouse-icon", BuildSettingPanel());
         }
 
         private Panel BuildSettingPanel() {
@@ -112,13 +109,6 @@ namespace Blish_HUD.Modules.MouseUsability {
                 Parent = muPanel
             };
 
-            // TODO: Why is this here?
-            Map.IndexEndpoint();
-
-
-            AllColors.Reverse();
-            AllColors.ForEach(clr => colorPicker.Colors.Add(clr));
-
             var cpScroller = new Scrollbar(colorPicker) {
                 Parent = muPanel,
                 Left = colorPicker.Right,
@@ -138,96 +128,127 @@ namespace Blish_HUD.Modules.MouseUsability {
                 Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
             };
 
-            var highlightColor = new ColorBox() {
+            var cdd = new ColorDropdown() {
                 Parent = muPanel,
-                Top = colorPicker.Bottom + 10,
-                Left = lblHighlightColor.Right + 5,
-                ColorId = setting_hl_highlightColorId.Value
+                Top = lblHighlightColor.Bottom + 10,
+                Left = lblHighlightColor.Left,
+                Width = 150,
             };
+            cdd.AddColorItem(Color.Red, "Red");
+            cdd.AddColorItem(Color.Orange, "Orange");
+            cdd.AddColorItem(Color.Yellow, "Yellow");
+            cdd.AddColorItem(Color.Green, "Green");
+            cdd.AddColorItem(Color.Blue, "Blue");
+            cdd.AddColorItem(Color.Purple, "Purple");
+            cdd.AddColorItem(Color.Brown, "Brown");
+            cdd.AddColorItem(Color.Magenta, "Magenta");
+            cdd.AddColorItem(Color.Tan, "Tan");
+            cdd.AddColorItem(Color.Cyan, "Cyan");
+            cdd.AddColorItem(Color.Olive, "Olive");
+            cdd.AddColorItem(Color.Maroon, "Maroon");
+            cdd.AddColorItem(Color.Navy, "Navy");
+            cdd.AddColorItem(Color.Aquamarine, "Aquamarine");
+            cdd.AddColorItem(Color.Turquoise, "Turquoise");
+            cdd.AddColorItem(Color.Silver, "Silver");
+            cdd.AddColorItem(Color.Lime, "Lime");
+            cdd.AddColorItem(Color.Teal, "Teal");
+            cdd.AddColorItem(Color.Indigo, "Indigo");
+            cdd.AddColorItem(Color.Violet, "Violet");
+            cdd.AddColorItem(Color.Pink, "Pink");
+            cdd.AddColorItem(Color.White, "White");
+            cdd.AddColorItem(Color.Gray, "Gray");
+            cdd.AddColorItem(Color.Black, "Black");
+
+            //var highlightColor = new ColorBox() {
+            //    Parent = muPanel,
+            //    Top = colorPicker.Bottom + 10,
+            //    Left = lblHighlightColor.Right + 5,
+            //    ColorId = setting_hl_highlightColorId.Value
+            //};
 
             //GameServices.GetService<DataBindingService>().AddBinding(
             // setting_hl_highlightColorId, "Value",
             // highlightColor, "ColorId"
             //);
 
-            Binding.Create(() => setting_hl_highlightColorId.Value == highlightColor.ColorId);
+            //Binding.Create(() => setting_hl_highlightColorId.Value == highlightColor.ColorId);
 
-            var lblOutlineColor = new Label() {
-                Parent = muPanel,
-                Top = colorPicker.Bottom + 10,
-                Left = highlightColor.Right + 25,
-                Text = "Outline Color",
-                Height = 32,
-                VerticalAlignment = Utils.DrawUtil.VerticalAlignment.Middle,
-                AutoSizeWidth = true,
-                TextColor = Color.White,
-                Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
-            };
+            //var lblOutlineColor = new Label() {
+            //    Parent = muPanel,
+            //    Top = colorPicker.Bottom + 10,
+            //    Left = highlightColor.Right + 25,
+            //    Text = "Outline Color",
+            //    Height = 32,
+            //    VerticalAlignment = Utils.DrawUtil.VerticalAlignment.Middle,
+            //    AutoSizeWidth = true,
+            //    TextColor = Color.White,
+            //    Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+            //};
 
-            var outlineColor = new ColorBox() {
-                Parent = muPanel,
-                Left = lblOutlineColor.Right + 5,
-                Top = colorPicker.Bottom + 10,
-                ColorId = setting_hl_outlineColorId.Value
-            };
+            //var outlineColor = new ColorBox() {
+            //    Parent = muPanel,
+            //    Left = lblOutlineColor.Right + 5,
+            //    Top = colorPicker.Bottom + 10,
+            //    ColorId = setting_hl_outlineColorId.Value
+            //};
 
-            var cbMouseHighlight = new Checkbox() {
-                Parent = muPanel,
-                Top = highlightColor.Bottom + 10,
-                Left = colorPicker.Left,
-                Text = "Enable Mouse Highlight",
-                Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
-                Checked = setting_hl_showHighlight.Value,
-            };
+            //var cbMouseHighlight = new Checkbox() {
+            //    Parent = muPanel,
+            //    Top = highlightColor.Bottom + 10,
+            //    Left = colorPicker.Left,
+            //    Text = "Enable Mouse Highlight",
+            //    Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+            //    Checked = setting_hl_showHighlight.Value,
+            //};
 
-            var cbShowOverUI = new Checkbox() {
-                Parent = muPanel,
-                Top = cbMouseHighlight.Bottom + 5,
-                Left = cbMouseHighlight.Left,
-                Text = "Show Mouse Highlight Over Blish HUD UI",
-                Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
-                Checked = setting_hl_showOverBlishHud.Value,
-            };
+            //var cbShowOverUI = new Checkbox() {
+            //    Parent = muPanel,
+            //    Top = cbMouseHighlight.Bottom + 5,
+            //    Left = cbMouseHighlight.Left,
+            //    Text = "Show Mouse Highlight Over Blish HUD UI",
+            //    Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+            //    Checked = setting_hl_showOverBlishHud.Value,
+            //};
 
-            var lblOpacity = new Label() {
-                Parent = muPanel,
-                Top = cbShowOverUI.Bottom + 6,
-                Left = cbShowOverUI.Left,
-                Text = "Opacity",
-                AutoSizeHeight = true,
-                AutoSizeWidth = true,
-                TextColor = Color.White,
-                Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
-            };
+            //var lblOpacity = new Label() {
+            //    Parent = muPanel,
+            //    Top = cbShowOverUI.Bottom + 6,
+            //    Left = cbShowOverUI.Left,
+            //    Text = "Opacity",
+            //    AutoSizeHeight = true,
+            //    AutoSizeWidth = true,
+            //    TextColor = Color.White,
+            //    Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+            //};
 
-            var tbOpacity = new TrackBar() {
-                Parent = muPanel,
-                Top = lblOpacity.Top + lblOpacity.Height / 2 - 8,
-                Left = cpScroller.Right - 256,
-                MinValue = 0,
-                MaxValue = 1,
-                Value = 1.0f,
-            };
+            //var tbOpacity = new TrackBar() {
+            //    Parent = muPanel,
+            //    Top = lblOpacity.Top + lblOpacity.Height / 2 - 8,
+            //    Left = cpScroller.Right - 256,
+            //    MinValue = 0,
+            //    MaxValue = 1,
+            //    Value = 1.0f,
+            //};
 
-            var lblHighlightThickness = new Label() {
-                Parent = muPanel,
-                Top = lblOpacity.Bottom + 6,
-                Left = colorPicker.Left,
-                Text = "Highlight Thickness",
-                AutoSizeHeight = true,
-                AutoSizeWidth = true,
-                TextColor = Color.White,
-                Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
-            };
+            //var lblHighlightThickness = new Label() {
+            //    Parent = muPanel,
+            //    Top = lblOpacity.Bottom + 6,
+            //    Left = colorPicker.Left,
+            //    Text = "Highlight Thickness",
+            //    AutoSizeHeight = true,
+            //    AutoSizeWidth = true,
+            //    TextColor = Color.White,
+            //    Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+            //};
 
-            var tbHighlightThickness = new TrackBar() {
-                Parent = muPanel,
-                Top = lblHighlightThickness.Top + lblHighlightThickness.Height / 2 - 8,
-                Left = cpScroller.Right - 256,
-                Value = 2,
-                MinValue = 1,
-                MaxValue = 15,
-            };
+            //var tbHighlightThickness = new TrackBar() {
+            //    Parent = muPanel,
+            //    Top = lblHighlightThickness.Top + lblHighlightThickness.Height / 2 - 8,
+            //    Left = cpScroller.Right - 256,
+            //    Value = 2,
+            //    MinValue = 1,
+            //    MaxValue = 15,
+            //};
 
             // Wire settings to control so they stay in sync
             //GameServices.GetService<DataBindingService>().AddBinding(
@@ -238,68 +259,47 @@ namespace Blish_HUD.Modules.MouseUsability {
             //    }
             //);
 
-            var lblOutlineThickness = new Label() {
-                Parent = muPanel,
-                Top = tbHighlightThickness.Bottom + 6,
-                Left = colorPicker.Left,
-                Text = "Outline Thickness",
-                AutoSizeHeight = true,
-                AutoSizeWidth = true,
-                TextColor = Color.White,
-                Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
-            };
+            //var lblOutlineThickness = new Label() {
+            //    Parent = muPanel,
+            //    Top = tbHighlightThickness.Bottom + 6,
+            //    Left = colorPicker.Left,
+            //    Text = "Outline Thickness",
+            //    AutoSizeHeight = true,
+            //    AutoSizeWidth = true,
+            //    TextColor = Color.White,
+            //    Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+            //};
 
-            var tbOutlineThickness = new TrackBar() {
-                Parent = muPanel,
-                Top = lblOutlineThickness.Top + lblOutlineThickness.Height / 2 - 8,
-                Left = cpScroller.Right - 256,
-                Value = 2,
-                MinValue = 0,
-                MaxValue = 5,
-            };
+            //var tbOutlineThickness = new TrackBar() {
+            //    Parent = muPanel,
+            //    Top = lblOutlineThickness.Top + lblOutlineThickness.Height / 2 - 8,
+            //    Left = cpScroller.Right - 256,
+            //    Value = 2,
+            //    MinValue = 0,
+            //    MaxValue = 5,
+            //};
 
-            //GameServices.GetService<DataBindingService>().AddBinding(
-            //    setting_hl_outlineThickness, "Value",
-            //    tbOutlineThickness, "Value", new OneWayBinding[] {
-            //        new OneWayBinding(HorizontalHighlight, "OutlineThickness"),
-            //        new OneWayBinding(VerticalHighlight, "OutlineThickness"),
-            //    }
-            //);
+            //cbMouseHighlight.CheckedChanged += delegate {
+            //    HorizontalHighlight.Visible = cbMouseHighlight.Checked;
+            //    VerticalHighlight.Visible = cbMouseHighlight.Checked;
 
-            // Bind opacity to slider and settings value
-            //GameServices.GetService<DataBindingService>().AddBinding(
-            //    setting_hl_highlightOpacity, "Value",
-            //    tbOpacity, "Value", new OneWayBinding[] {
-            //        new OneWayBinding(HorizontalHighlight, "Opacity"),
-            //        new OneWayBinding(VerticalHighlight, "Opacity"),
-            //    }
-            //);
-            
-            cbMouseHighlight.CheckedChanged += delegate {
-                HorizontalHighlight.Visible = cbMouseHighlight.Checked;
-                VerticalHighlight.Visible = cbMouseHighlight.Checked;
+            //    setting_hl_showHighlight.Value = cbMouseHighlight.Checked;
+            //};
 
-                setting_hl_showHighlight.Value = cbMouseHighlight.Checked;
-            };
+            //cbShowOverUI.CheckedChanged += delegate {
+            //    HorizontalHighlight.ZIndex = cbShowOverUI.Checked ? int.MaxValue : 0;
+            //    VerticalHighlight.ZIndex = cbShowOverUI.Checked ? int.MaxValue : 0;
 
-            cbShowOverUI.CheckedChanged += delegate {
-                HorizontalHighlight.ZIndex = cbShowOverUI.Checked ? int.MaxValue : 0;
-                VerticalHighlight.ZIndex = cbShowOverUI.Checked ? int.MaxValue : 0;
+            //    setting_hl_showOverBlishHud.Value = cbShowOverUI.Checked;
+            //};
 
-                setting_hl_showOverBlishHud.Value = cbShowOverUI.Checked;
-            };
+            //highlightColor.LeftMouseButtonPressed += delegate { colorPicker.AssociatedColorBox = highlightColor; };
+            //outlineColor.LeftMouseButtonPressed += delegate { colorPicker.AssociatedColorBox = outlineColor; };
 
-            //tbOpacity.ValueChanged += delegate { HorizontalHighlight.Opacity = tbOpacity.Value / 100; VerticalHighlight.Opacity = tbOpacity.Value / 100; };
-            //tbHighlightThickness.ValueChanged += delegate { HorizontalHighlight.HighlightThickness = tbHighlightThickness.IntValue + 1; VerticalHighlight.HighlightThickness = tbHighlightThickness.IntValue + 1; };
-            //tbOutlineThickness.ValueChanged += delegate { HorizontalHighlight.OutlineThickness = tbOutlineThickness.IntValue; VerticalHighlight.OutlineThickness = tbOutlineThickness.IntValue; };
+            //highlightColor.ColorChanged += delegate { HorizontalHighlight.HighlightColor = highlightColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.HighlightColor = highlightColor.Color.Leather.Rgb.ToXnaColor(); };
+            //outlineColor.ColorChanged += delegate { HorizontalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); };
 
-            highlightColor.LeftMouseButtonPressed += delegate { colorPicker.AssociatedColorBox = highlightColor; };
-            outlineColor.LeftMouseButtonPressed += delegate { colorPicker.AssociatedColorBox = outlineColor; };
-
-            highlightColor.ColorChanged += delegate { HorizontalHighlight.HighlightColor = highlightColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.HighlightColor = highlightColor.Color.Leather.Rgb.ToXnaColor(); };
-            outlineColor.ColorChanged += delegate { HorizontalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); };
-
-            colorPicker.AssociatedColorBox = highlightColor;
+            //colorPicker.AssociatedColorBox = highlightColor;
 
             return muPanel;
         }

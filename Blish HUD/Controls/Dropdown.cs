@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.TextureAtlases;
+using SharpDX.Direct3D9;
 
 namespace Blish_HUD.Controls {
     public class Dropdown:Control {
@@ -51,8 +52,7 @@ namespace Blish_HUD.Controls {
 
             protected override void OnMouseMoved(MouseEventArgs e) {
                 base.OnMouseMoved(e);
-
-                //var relPos = e.MouseState.Position - this.AbsoluteBounds.Location;
+                
                 this.HighlightedItem = this.RelativeMousePosition.Y / _assocDropdown.Height;
             }
 
@@ -64,21 +64,7 @@ namespace Blish_HUD.Controls {
             }
 
             protected override void Paint(SpriteBatch spriteBatch, Rectangle bounds) {
-                spriteBatch.Draw(ContentService.Textures.Pixel, bounds, Color.Black);
-
-                int index = 0;
-                foreach (string item in _assocDropdown.Items) {
-
-                    if (index == this.HighlightedItem) {
-                        spriteBatch.Draw(ContentService.Textures.Pixel, new Rectangle(2, 2 + _assocDropdown.Height * index, bounds.Width - 12 - spriteArrow.Width, _assocDropdown.Height - 4), new Color(45, 37, 25, 255));
-
-                        Utils.DrawUtil.DrawAlignedText(spriteBatch, Overlay.font_def12, item, new Rectangle(8, _assocDropdown.Height * index, bounds.Width - 13 - spriteArrow.Width, _assocDropdown.Height), ContentService.Colors.Chardonnay, Utils.DrawUtil.HorizontalAlignment.Left, Utils.DrawUtil.VerticalAlignment.Middle);
-                    } else {
-                        Utils.DrawUtil.DrawAlignedText(spriteBatch, Overlay.font_def12, item, new Rectangle(8, _assocDropdown.Height * index, bounds.Width - 13 - spriteArrow.Width, _assocDropdown.Height), Color.FromNonPremultiplied(239, 240, 239, 255), Utils.DrawUtil.HorizontalAlignment.Left, Utils.DrawUtil.VerticalAlignment.Middle);
-                    }
-
-                    index++;
-                }
+                _assocDropdown.PaintItemPanel(spriteBatch, bounds, this.HighlightedItem);
             }
 
             protected override void Dispose(bool disposing) {
@@ -95,7 +81,9 @@ namespace Blish_HUD.Controls {
 
         }
 
-        private const int  DROPDOWN_HEIGHT = 25;
+        protected const int  DROPDOWN_HEIGHT = 25;
+
+        protected const int EDGE_PADDING = 5;
 
         public class ValueChangedEventArgs : EventArgs {
             public string PreviousValue { get; }
@@ -164,14 +152,66 @@ namespace Blish_HUD.Controls {
             if (string.IsNullOrEmpty(this.SelectedItem)) this.SelectedItem = this.Items.FirstOrDefault();
         }
 
-        protected override void Paint(SpriteBatch spriteBatch, Rectangle bounds) {
-            spriteBatch.Draw(Content.GetTexture("input-box"), bounds.Subtract(new Rectangle(0, 0, 5, 0)), new Rectangle(0, 0, Math.Min(GameServices.GetService<ContentService>().GetTexture("textbox").Width - 5, this.Width - 5), Content.GetTexture("textbox").Height), Color.White);
-            spriteBatch.Draw(Content.GetTexture("input-box"), new Rectangle(bounds.Right - 5, bounds.Y, 5, bounds.Height), new Rectangle(GameServices.GetService<ContentService>().GetTexture("textbox").Width - 5, 0, 5, Content.GetTexture("textbox").Height), Color.White);
-            
-            spriteBatch.Draw(this.MouseOver ? spriteArrowActive : spriteArrow, new Rectangle(bounds.Right - spriteArrow.Width - 5, bounds.Height / 2 - spriteArrow.Height / 2, spriteArrow.Width, spriteArrow.Height), Color.White);
+        protected void DrawControlBacking(SpriteBatch spriteBatch, Rectangle bounds) {
+            spriteBatch.Draw(Content.GetTexture("input-box"), bounds.Subtract(new Rectangle(0, 0, 5, 0)), new Rectangle(0, 0,        Math.Min(GameServices.GetService<ContentService>().GetTexture("textbox").Width - 5, this.Width - 5), Content.GetTexture("textbox").Height), Color.White);
+            spriteBatch.Draw(Content.GetTexture("input-box"), new Rectangle(bounds.Right - 5,                              bounds.Y, 5,                                                                                                   bounds.Height),                        new Rectangle(GameServices.GetService<ContentService>().GetTexture("textbox").Width - 5, 0, 5, Content.GetTexture("textbox").Height), Color.White);
 
-            Utils.DrawUtil.DrawAlignedText(spriteBatch, Overlay.font_def12, this.SelectedItem, new Rectangle(5,0, bounds.Width - 10 - spriteArrow.Width, bounds.Height), Color.FromNonPremultiplied(239, 240, 239, 255), Utils.DrawUtil.HorizontalAlignment.Left, Utils.DrawUtil.VerticalAlignment.Middle);
+            spriteBatch.Draw(this.MouseOver ? spriteArrowActive : spriteArrow, new Rectangle(bounds.Right - spriteArrow.Width - 5, bounds.Height / 2 - spriteArrow.Height / 2, spriteArrow.Width, spriteArrow.Height), Color.White);
         }
+
+        protected void DrawSelectedItem(SpriteBatch spriteBatch, Rectangle bounds) {
+            Utils.DrawUtil.DrawAlignedText(spriteBatch, Overlay.font_def12, this.SelectedItem, new Rectangle(bounds.X + EDGE_PADDING, bounds.Y, bounds.Width - (EDGE_PADDING * 2) - spriteArrow.Width, bounds.Height), Color.FromNonPremultiplied(239, 240, 239, 255), Utils.DrawUtil.HorizontalAlignment.Left, Utils.DrawUtil.VerticalAlignment.Middle);
+        }
+
+        protected override void Paint(SpriteBatch spriteBatch, Rectangle bounds) {
+            DrawControlBacking(spriteBatch, bounds);
+            DrawSelectedItem(spriteBatch, bounds);
+        }
+
+        #region Paining DropdownItemPanel
+
+        protected void PaintItemPanelBacking(SpriteBatch spriteBatch, Rectangle bounds, int highlightedItem) {
+            spriteBatch.Draw(ContentService.Textures.Pixel, bounds, Color.Black);
+            spriteBatch.Draw(ContentService.Textures.Pixel, 
+                             new Rectangle(
+                                           2, 
+                                           2 + this.Height * highlightedItem, 
+                                           bounds.Width - 12 - spriteArrow.Width, 
+                                           this.Height - 4), 
+                             new Color(45, 37, 25, 255));
+        }
+
+        protected virtual void PaintItemPanelItemText(SpriteBatch spriteBatch, Rectangle bounds, string itemText, Color textColor) {
+            Utils.DrawUtil.DrawAlignedText(spriteBatch,
+                                           Overlay.font_def12,
+                                           itemText,
+                                           bounds, textColor,
+                                           Utils.DrawUtil.HorizontalAlignment.Left,
+                                           Utils.DrawUtil.VerticalAlignment.Middle);
+        }
+
+        protected void PaintItemPanelItems(SpriteBatch spriteBatch, Rectangle bounds, int highlightedItem) {
+            for (int index = 0; index < this.Items.Count; index++) {
+                Color textColor = index == highlightedItem 
+                                      ? ContentService.Colors.Chardonnay
+                                      : Color.FromNonPremultiplied(239, 240, 239, 255);
+
+                PaintItemPanelItemText(spriteBatch,
+                                       new Rectangle(bounds.X + 8,
+                                                     this.Height * index,
+                                                     bounds.Width - 13 - spriteArrow.Width,
+                                                     this.Height),
+                                       this.Items[index],
+                                       textColor);
+            }
+        }
+
+        protected virtual void PaintItemPanel(SpriteBatch spriteBatch, Rectangle bounds, int highlightedItem) {
+            PaintItemPanelBacking(spriteBatch, bounds, highlightedItem);
+            PaintItemPanelItems(spriteBatch, bounds, highlightedItem);
+        }
+
+        #endregion
 
     }
 }

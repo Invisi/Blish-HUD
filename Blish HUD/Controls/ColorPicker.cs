@@ -58,60 +58,60 @@ namespace Blish_HUD.Controls {
             }
         }
 
-        public ColorPicker() : base() {
-            this.Colors = new ObservableCollection<Color>();
-            ColorBoxes = new Dictionary<string, ColorBox>();
+        //public ColorPicker() : base() {
+        //    this.Colors = new ObservableCollection<Color>();
+        //    ColorBoxes = new Dictionary<string, ColorBox>();
 
-            this.ContentRegion = new Rectangle(COLOR_PADDING, COLOR_PADDING, this.Width - (COLOR_PADDING * 2), this.Height - (COLOR_PADDING * 2));
+        //    this.ContentRegion = new Rectangle(COLOR_PADDING, COLOR_PADDING, this.Width - (COLOR_PADDING * 2), this.Height - (COLOR_PADDING * 2));
 
-            this.Colors.CollectionChanged += Colors_CollectionChanged;
-        }
+        //    this.Colors.CollectionChanged += Colors_CollectionChanged;
+        //}
 
-        private void Colors_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
-            // Remove any items that were removed (first because moving an item in a collection will put
-            // that item in both OldItems and NewItems)
-            if (e.OldItems != null) {
-                foreach (Color delItem in e.OldItems) {
-                    if (ColorBoxes.ContainsKey(delItem)) {
-                        ColorBoxes[delItem].Dispose();
-                        ColorBoxes.Remove(delItem);
-                    }
-                }
-            }
+        //private void Colors_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+        //    // Remove any items that were removed (first because moving an item in a collection will put
+        //    // that item in both OldItems and NewItems)
+        //    if (e.OldItems != null) {
+        //        foreach (Color delItem in e.OldItems) {
+        //            if (ColorBoxes.ContainsKey(delItem)) {
+        //                ColorBoxes[delItem].Dispose();
+        //                ColorBoxes.Remove(delItem);
+        //            }
+        //        }
+        //    }
 
-            if (e.NewItems != null) {
-                foreach (BHGw2Api.DyeColor addItem in e.NewItems) {
-                    if (!ColorBoxes.ContainsKey(addItem)) {
-                        var cb = new ColorBox() {
-                            Color = addItem,
-                            Parent = this
-                        };
-                        ColorBoxes.Add(addItem, cb);
+        //    if (e.NewItems != null) {
+        //        foreach (BHGw2Api.DyeColor addItem in e.NewItems) {
+        //            if (!ColorBoxes.ContainsKey(addItem)) {
+        //                var cb = new ColorBox() {
+        //                    Color = addItem,
+        //                    Parent = this
+        //                };
+        //                ColorBoxes.Add(addItem, cb);
                         
-                        cb.LeftMouseButtonPressed += delegate {
-                            ColorBoxes.Values.ToList().ForEach(box => box.Selected = false);
+        //                cb.LeftMouseButtonPressed += delegate {
+        //                    ColorBoxes.Values.ToList().ForEach(box => box.Selected = false);
 
-                            cb.Selected = true;
-                            this.SelectedColor = cb.Color;
-                        };
-                    }
-                }
-            }
+        //                    cb.Selected = true;
+        //                    this.SelectedColor = cb.Color;
+        //                };
+        //            }
+        //        }
+        //    }
 
-            // Relayout the color grid
-            for (int i = 0; i < this.Colors.Count; i++) {
-                var curColor = this.Colors[i];
-                var curBox = ColorBoxes[curColor];
+        //    // Relayout the color grid
+        //    for (int i = 0; i < this.Colors.Count; i++) {
+        //        var curColor = this.Colors[i];
+        //        var curBox = ColorBoxes[curColor];
 
-                int hPos = i % hColors;
-                int vPos = i / hColors;
+        //        int hPos = i % hColors;
+        //        int vPos = i / hColors;
 
-                curBox.Location = new Point(
-                    hPos * (curBox.Width + COLOR_PADDING),
-                    vPos * (curBox.Width + COLOR_PADDING)
-                );
-            }
-        }
+        //        curBox.Location = new Point(
+        //            hPos * (curBox.Width + COLOR_PADDING),
+        //            vPos * (curBox.Width + COLOR_PADDING)
+        //        );
+        //    }
+        //}
 
         public override void Invalidate() {
             base.Invalidate();

@@ -134,6 +134,7 @@
     <Compile Include="BHUDControls\Hotkeys\HotkeyAssigner.cs" />
     <Compile Include="BHUDControls\Hotkeys\HotkeyAssignmentWindow.cs" />
     <Compile Include="BHUDControls\Pathing\Category.cs" />
+    <Compile Include="Controls\ColorDropdown.cs" />
     <Compile Include="Controls\ContextMenuStripItem.cs" />
     <Compile Include="Controls\DetailsButton.cs" />
     <Compile Include="Controls\FlowPanel.cs" />
