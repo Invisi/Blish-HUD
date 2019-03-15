@@ -8,6 +8,7 @@ using Blish_HUD.BHGw2Api;
 using Blish_HUD.Controls;
 using Microsoft.Xna.Framework;
 using Humanizer;
+using Microsoft.Xna.Framework.Input;
 using Praeclarum.Bind;
 
 namespace Blish_HUD.Modules.MouseUsability {
@@ -75,20 +76,97 @@ namespace Blish_HUD.Modules.MouseUsability {
                 Visible = false
             };
 
-            _top = new MouseHighlight() {
-                HighlightOrientation = MouseHighlight.Orientation.Vertical,
-                HighlightColor =  _settingHighlightColor.Value,
-                Visible = true,
-                Height = 1080
-            };
-
-            Binding.Create(() => _top.Location == (GameService.Input.MouseState != null ? new Point(GameService.Input.MouseState.X, GameService.Input.MouseState.Y) : Point.Zero));
-
             CircleHighlight = new Image(GameService.Content.GetTexture("1032331-thick")) {
                 Location = GameService.Input.MouseState.Position - new Point(32, 32),
-                Parent = GameService.Graphics.SpriteScreen
+                Parent   = GameService.Graphics.SpriteScreen
             };
 
+            _top = new MouseHighlight() {
+                HighlightOrientation = MouseHighlight.Orientation.Vertical,
+                HighlightColor       = _settingHighlightColor.Value,
+                Visible              = true,
+                Height               = 1080
+            };
+
+            _right = new MouseHighlight() {
+                HighlightOrientation = MouseHighlight.Orientation.Horizontal,
+                HighlightColor       = _settingHighlightColor.Value,
+                Visible              = true,
+                Width                = 1080
+            };
+
+            _bottom = new MouseHighlight() {
+                HighlightOrientation = MouseHighlight.Orientation.Vertical,
+                HighlightColor       = _settingHighlightColor.Value,
+                Visible              = true,
+                Height               = 1080
+            };
+            
+            _left = new MouseHighlight() {
+                HighlightOrientation = MouseHighlight.Orientation.Horizontal,
+                HighlightColor       = _settingHighlightColor.Value,
+                Visible              = true,
+                Width                = 1080,
+            };
+
+            var tbinding = new Library.Adhesive.OneWayBinding<Point, MouseState>(
+                                                                                 () => _top.Location,
+                                                                                 () => GameService.Input.MouseState,
+                                                                                 (ms) => new Point(GameService.Input.MouseState.Position.X - _top.Width / 2, GameService.Input.MouseState.Y - _top.Height - CircleHighlight.Height / 2 + 9),
+                                                                                 true
+                                                                                );
+
+            var rbinding = new Library.Adhesive.OneWayBinding<Point, MouseState>(
+                                                                                 () => _right.Location,
+                                                                                 () => GameService.Input.MouseState,
+                                                                                 (ms) => new Point(GameService.Input.MouseState.Position.X + CircleHighlight.Height / 2 - 9, GameService.Input.MouseState.Y - _right.Height / 2),
+                                                                                 true
+                                                                                );
+
+            var bbinding = new Library.Adhesive.OneWayBinding<Point, MouseState>(
+                                                                                 () => _bottom.Location,
+                                                                                 () => GameService.Input.MouseState,
+                                                                                 (ms) => new Point(GameService.Input.MouseState.Position.X - _bottom.Width / 2, GameService.Input.MouseState.Y + CircleHighlight.Height / 2 - 9),
+                                                                                 true
+                                                                                );
+
+            var lbinding = new Library.Adhesive.OneWayBinding<Point, MouseState>(
+                                                                                 () => _left.Location,
+                                                                                 () => GameService.Input.MouseState,
+                                                                                 (ms) => new Point(GameService.Input.MouseState.Position.X - _left.Width - CircleHighlight.Height / 2 + 9, GameService.Input.MouseState.Y - _left.Height / 2),
+                                                                                 true
+                                                                                );
+
+            new Library.Adhesive.OneWayBinding<Color, Color>(
+                                                             () => _top.HighlightColor,
+                                                             () => _settingHighlightColor.Value,
+                                                             applyLeft: true
+                                                            );
+
+            new Library.Adhesive.OneWayBinding<Color, Color>(
+                                                             () => _right.HighlightColor,
+                                                             () => _settingHighlightColor.Value,
+                                                             applyLeft: true
+                                                            );
+
+            new Library.Adhesive.OneWayBinding<Color, Color>(
+                                                             () => _bottom.HighlightColor,
+                                                             () => _settingHighlightColor.Value,
+                                                             applyLeft: true
+                                                            );
+
+            new Library.Adhesive.OneWayBinding<Color, Color>(
+                                                             () => _left.HighlightColor,
+                                                             () => _settingHighlightColor.Value,
+                                                             applyLeft: true
+                                                            );
+
+            //Binding.Create(() => _top.Location == (GameService.Input.MouseState != null ? new Point(GameService.Input.MouseState.X, GameService.Input.MouseState.Y) : Point.Zero));
+
+            _top.Parent = GameService.Graphics.SpriteScreen;
+            _right.Parent = GameService.Graphics.SpriteScreen;
+            _bottom.Parent = GameService.Graphics.SpriteScreen;
+            _left.Parent = GameService.Graphics.SpriteScreen;
             HorizontalHighlight.Parent = GameService.Graphics.SpriteScreen;
             VerticalHighlight.Parent = GameService.Graphics.SpriteScreen;
 
@@ -239,11 +317,9 @@ namespace Blish_HUD.Modules.MouseUsability {
 
             Binding.Create(() =>
                                HorizontalHighlight.HighlightColor == _settingHighlightColor.Value &&
-                               HorizontalHighlight.HighlightThickness == _settingHighlightThickness.Value &&
                                HorizontalHighlight.Opacity == _settingHighlightOpacity.Value
                              &&
                                VerticalHighlight.HighlightColor == _settingHighlightColor.Value &&
-                               VerticalHighlight.HighlightThickness == _settingHighlightThickness.Value &&
                                VerticalHighlight.Opacity == _settingHighlightOpacity.Value
                              &&
                                CircleHighlight.Color == _settingHighlightColor.Value
