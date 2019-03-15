@@ -71,16 +71,19 @@ namespace Blish_HUD {
         public event EventHandler<MouseEventArgs> RightMouseButtonPressed;
         public event EventHandler<MouseEventArgs> RightMouseButtonReleased;
         public event EventHandler<MouseEventArgs> MouseWheelScrolled;
-        
-        public MouseState MouseState { get; private set; }
-        public KeyboardState KeyboardState { get; private set; }
 
-        // TODO: Probably can get rid of this
-        public Vector2 MousePosition {
-            get {
-                return new Vector2(this.MouseState.X, this.MouseState.Y);
+        private MouseState _mouseState;
+
+        public MouseState MouseState {
+            get => _mouseState;
+            private set {
+                if (_mouseState == value) return;
+
+                _mouseState = value;
+                OnPropertyChanged();
             }
         }
+        public KeyboardState KeyboardState { get; private set; }
 
         // TODO: Rename this to prevent confusion with the (Thread) "thrdMouseHook"
         internal static WinApi.MouseHook mouseHook;

@@ -6,9 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Blish_HUD.Controls;
+using Praeclarum.Bind;
 
 namespace Blish_HUD.Modules.MouseUsability {
     public class MouseHighlight:Control {
+
+        private Binding _bindings;
 
         public enum Orientation {
             Horizontal,
@@ -17,87 +20,62 @@ namespace Blish_HUD.Modules.MouseUsability {
 
         private Color _highlightColor = Color.Red;
         public Color HighlightColor {
-            get {
-                return _highlightColor;
-            }
+            get => _highlightColor;
             set {
-                if (_highlightColor != value) {
-                    _highlightColor = value;
-                    Invalidate();
-                }
-            }
-        }
+                if (_highlightColor == value) return;
 
-        private float _highlightThickness = 2;
-        public float HighlightThickness {
-            get {
-                return _highlightThickness;
-            }
-            set {
-                if (_highlightThickness != value) {
-                    _highlightThickness = value;
-                    Invalidate();
-                }
-            }
-        }
-
-        private Color _outlineColor = Color.Black;
-        public Color OutlineColor {
-            get => _outlineColor;
-            set {
-                if (_outlineColor == value) return;
-
-                _outlineColor = value;
+                _highlightColor = value;
                 OnPropertyChanged();
             }
         }
 
-        private float _outlineThickness = 1;
-        public float OutlineThickness {
-            get {
-                return _outlineThickness;
-            }
+        private int _highlightThickness = 1;
+        public int HighlightThickness {
+            get => _highlightThickness;
             set {
-                if (_outlineThickness != value) {
-                    _outlineThickness = value;
-                    Invalidate();
+                if (_highlightThickness == value) return;
+
+                _highlightThickness = value;
+                OnPropertyChanged();
+
+                if (_highlightOrientation == Orientation.Horizontal) {
+                    this.Height = Content.GetTexture("scrollbar-track").Width;
+                } else {
+                    this.Width = Content.GetTexture("scrollbar-track").Width;
                 }
             }
         }
 
-        private Orientation _orientation;
+        private Orientation _highlightOrientation = Orientation.Horizontal;
+        public Orientation HighlightOrientation {
+            get => _highlightOrientation;
+            set {
+                if (_highlightOrientation == value) return;
 
+                _highlightOrientation = value;
 
-        private Texture2D HighlightPixel;
+                if (_highlightOrientation == Orientation.Horizontal) {
+                    this.Left = 0;
+                } else {
+                    this.Top = 0;
+                }
 
-        public MouseHighlight(Orientation orientation) {
-            _orientation = orientation;
-
-            //HighlightPixel = new Texture2D(GameServices.GetService<GraphicsService>().GraphicsDevice, 1, 1);
-            HighlightPixel = HighlightPixel ?? ContentService.Textures.Pixel;
-            //GeneratePixel();
-
-            Invalidate();
+                OnPropertyChanged();
+            }
         }
 
-        public override void Invalidate() {
-            base.Invalidate();
-            
-            //if (_orientation == Orientation.Horizontal) {
-            //    _size = new Point(
-            //        GameServices.GetService<GraphicsService>().Resolution.X, 
-            //        (int)Math.Round(this.HighlightThickness, 0) + (int)Math.Round(this.OutlineThickness, 0) * 2
-            //    );
-            //} else {
-            //    _size = new Point(
-            //        (int)Math.Round(this.HighlightThickness, 0) + (int)Math.Round(this.OutlineThickness, 0) * 2,
-            //        GameServices.GetService<GraphicsService>().Resolution.Y
-            //    );
-            //}
-        }
+        private static Texture2D _spriteHighlight;
 
-        private void GeneratePixel() {
-            HighlightPixel.SetData(new Color[] {Color.White});
+        public MouseHighlight() {
+            _spriteHighlight = _spriteHighlight ?? Content.GetTexture("scrollbar-track");
+
+            GameService.Graphics.SpriteScreen.Resized += (object sender, ResizedEventArgs e) => {
+                if (this.HighlightOrientation == Orientation.Horizontal) {
+                    this.Width = e.CurrentSize.X;
+                } else {
+                    this.Height = e.CurrentSize.Y;
+                }
+            };
         }
 
         protected override CaptureType CapturesInput() {
@@ -105,15 +83,10 @@ namespace Blish_HUD.Modules.MouseUsability {
         }
 
         protected override void Paint(SpriteBatch spriteBatch, Rectangle bounds) {
-            spriteBatch.Draw(HighlightPixel, bounds, this.OutlineColor);
-
-            //int centerMargin = _orientation == Orientation.Horizontal ? bounds.Width / 2 - bounds.Height / 2 : bounds.Height / 2 - bounds.Width / 2;
-
-            if (_orientation == Orientation.Horizontal) {
-                spriteBatch.Draw(HighlightPixel, new Rectangle(0, (int)(this.OutlineThickness), bounds.Width, (int)(this.HighlightThickness)).OffsetBy(bounds.Location), this.HighlightColor);
-            } else {
-                spriteBatch.Draw(HighlightPixel, new Rectangle((int)(this.OutlineThickness), 0, (int)(this.HighlightThickness), bounds.Height).OffsetBy(bounds.Location), this.HighlightColor);
+            for (var i = 0; i < this.Height / Content.GetTexture("scrollbar-track").Height + 1; i++) {
+                spriteBatch.Draw(Content.GetTexture("scrollbar-track"), Content.GetTexture("scrollbar-track").Bounds.OffsetBy(0, i * Content.GetTexture("scrollbar-track").Height), this.HighlightColor);
             }
+            
         }
 
     }

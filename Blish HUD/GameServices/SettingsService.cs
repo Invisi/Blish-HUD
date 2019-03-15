@@ -17,16 +17,6 @@ using Point = Microsoft.Xna.Framework.Point;
 
 namespace Blish_HUD {
 
-#region Custom Setting Types
-
-    public abstract class CustomSettingType {
-
-
-
-    }
-
-#endregion
-
     [JsonObject]
     public abstract class SettingEntry : INotifyPropertyChanged {
 
@@ -238,6 +228,8 @@ namespace Blish_HUD {
             }
         }
 
+        private List<Binding> _activeBindings = new List<Binding>();
+
         private void LoadRenderers() {
             SettingTypeRenderers.Clear();
 
@@ -251,10 +243,14 @@ namespace Blish_HUD {
                     Checked = strongSetting.Value
                 };
 
-                Binding.Create(() => settingCtrl.Checked == strongSetting.Value);
+                _activeBindings.Add(Binding.Create(() => settingCtrl.Checked == strongSetting.Value));
 
                 return settingCtrl;
             });
+
+            //SettingTypeRenderers.Add(typeof(float), (name, setting) => {
+                
+            //                                            });
         }
 
         protected override void Load() {
@@ -620,7 +616,7 @@ namespace Blish_HUD {
                 var selectedModule =
                     GameService.Module.AvailableModules.First(m => m.GetModuleInfo().Name == moduleDropdown.SelectedItem);
 
-                selectedModule.Enabled = cbModuleEnabled.Checked;
+                selectedModule.ModuleEnabled = cbModuleEnabled.Checked;
                 GameService.Module.ModuleStates.Value[selectedModule.GetModuleInfo().Namespace] =
                     cbModuleEnabled.Checked;
 
@@ -631,7 +627,7 @@ namespace Blish_HUD {
             };
 
 
-            // TODO: Calculate this instead of specifying this statically (or better yet, modify labels to have wordwrap support)
+            // TODO: Use new WordWrap util instead of magic numbering the line length
             int lineLength = 115;
             moduleDropdown.ValueChanged += (Object sender, Dropdown.ValueChangedEventArgs e) => {
                 var selectedModule =
@@ -645,13 +641,18 @@ namespace Blish_HUD {
                     lblModuleDescription.Text = $"Description: {Utils.String.SplitText(selectedModule.GetModuleInfo().Description, lineLength)}";
                     lblModuleNamespace.Text = $"Module Namespace: {Utils.String.SplitText(selectedModule.GetModuleInfo().Namespace, lineLength)}";
 
-                    cbModuleEnabled.Checked = selectedModule.Enabled;
+                    cbModuleEnabled.Checked = selectedModule.ModuleEnabled;
 
                     // Clear out old setting controls
                     LstSettings.ToList().ForEach(s => s.Dispose());
                     LstSettings.Clear();
 
+                    // Clear out our old bindings
+                    _activeBindings.ForEach((binding) => binding.Unbind());
+                    _activeBindings.Clear();
+
                     // Display settings registered by module
+                    int lastCtrlBottom = lblModuleDescription.Bottom + 50;
                     foreach (KeyValuePair<string, SettingEntry> setting in selectedModule.Settings.Entries) {
                         if (!setting.Value.ExposedAsSetting) continue;
 
@@ -662,8 +663,9 @@ namespace Blish_HUD {
                                 .Invoke(setting.Key, setting.Value);
                             settingCtrl.Parent = mPanel;
                             settingCtrl.Enabled = cbModuleEnabled.Checked;
-                            // TODO: Y pos should not be a static multiple of 20 (needs to be dynamic)
-                            settingCtrl.Location = new Point(lblModuleDescription.Left, lblModuleDescription.Bottom + 50 + LstSettings.Count * 20);
+                            settingCtrl.Location = new Point(lblModuleDescription.Left, lastCtrlBottom + 5 + settingCtrl.Height);
+
+                            lastCtrlBottom = settingCtrl.Bottom;
                         } else {
                             // This setting type is not supported for automatic display
                             // Write this out to the log so that devs can see

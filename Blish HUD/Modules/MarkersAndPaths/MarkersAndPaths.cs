@@ -26,7 +26,7 @@ namespace Blish_HUD.Modules.MarkersAndPaths {
 
         }
 
-        protected override void OnEnabled() {
+        public override void OnStart() {
             // Ensure the marker directory is available in the documents folder
             if (!Directory.Exists(this.MarkerDirectory)) Directory.CreateDirectory(this.MarkerDirectory);
 

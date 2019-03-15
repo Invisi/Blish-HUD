@@ -34,8 +34,8 @@ namespace Blish_HUD.Modules.BeetleRacing {
 
         private Speedometer speedometer;
 
-        protected override void OnEnabled() {
-            base.OnEnabled();
+        public override void OnStart() {
+            base.OnStart();
 
             speedometer = new Speedometer {
                 Parent = GameServices.GetService<GraphicsService>().SpriteScreen,
@@ -43,7 +43,7 @@ namespace Blish_HUD.Modules.BeetleRacing {
             };
         }
 
-        protected override void OnDisabled() {
+        protected override void OnStop() {
             sampleBuffer.Clear();
             lastPos = Vector3.Zero;
             speedometer.Dispose();

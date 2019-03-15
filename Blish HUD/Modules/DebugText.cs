@@ -63,8 +63,6 @@ namespace Blish_HUD.Modules {
         }
 
         protected override void OnLoad() {
-            base.OnLoad();
-
             Gw2Mumble = GameService.Gw2Mumble;
             Player = GameService.Player;
 
@@ -89,14 +87,12 @@ namespace Blish_HUD.Modules {
             lblInfo.Location = new Point(0, GameServices.GetService<GraphicsService>().SpriteScreen.Height - 15);
         }
 
-        protected override void OnEnabled() {
-            base.OnEnabled();
-
+        public override void OnStart() {
             lblInfo.Parent = GameService.Graphics.SpriteScreen;
         }
 
-        protected override void OnDisabled() {
-            base.OnDisabled();
+        protected override void OnStop() {
+            base.OnStop();
 
             lblInfo.Parent = null;
         }

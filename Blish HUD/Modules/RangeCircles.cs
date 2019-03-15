@@ -26,7 +26,7 @@ namespace Blish_HUD.Modules {
 
         }
 
-        protected override void OnEnabled() {
+        public override void OnStart() {
             foreach (int rad in new int[] { 90, 120, 180, 240, 300, 400, 600, 900, 1000, 1200, 1500 }) {
                 if (!CircleCache.ContainsKey(rad))
                     CircleCache.Add(rad, Utils.DrawUtil.DrawCircle(GameService.Graphics.GraphicsDevice, rad, 4));
@@ -45,7 +45,7 @@ namespace Blish_HUD.Modules {
             }
         }
 
-        protected override void OnDisabled() {
+        protected override void OnStop() {
             foreach (var circ in RangeCirclesObjs) {
                 GameService.Graphics.World.Entities.Remove(circ);
             }

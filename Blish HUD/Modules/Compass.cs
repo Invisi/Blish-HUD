@@ -31,8 +31,8 @@ namespace Blish_HUD.Modules {
 
         private float compassSize = 0.5f;
 
-        protected override void OnEnabled() {
-            base.OnEnabled();
+        public override void OnStart() {
+            base.OnStart();
 
             northBb = new Entities.Primitives.Billboard(GameService.Content.GetTexture("north"), GameService.Player.Position + new Vector3(0, 1, 0), new Vector2(compassSize, compassSize));
             eastBb = new Entities.Primitives.Billboard(GameService.Content.GetTexture("east"), GameService.Player.Position + new Vector3(1, 0, 0), new Vector2(compassSize, compassSize));
@@ -45,8 +45,8 @@ namespace Blish_HUD.Modules {
             GameService.Graphics.World.Entities.Add(westBb);
         }
 
-        protected override void OnDisabled() {
-            base.OnDisabled();
+        protected override void OnStop() {
+            base.OnStop();
 
             GameService.Graphics.World.Entities.Remove(northBb);
             GameService.Graphics.World.Entities.Remove(eastBb);

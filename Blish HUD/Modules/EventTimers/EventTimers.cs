@@ -25,10 +25,6 @@ namespace Blish_HUD.Modules.EventTimers {
 
         private List<EventSummary> displayedEvents;
 
-        protected override void OnLoad() {
-            base.OnLoad();
-        }
-
         public override ModuleInfo GetModuleInfo() {
             return new ModuleInfo(
                 "(General) Event Timers Module",
@@ -39,16 +35,13 @@ namespace Blish_HUD.Modules.EventTimers {
             );
         }
 
-        private Settings allSettings;
+        public override void DefineSettings(Settings settings) {  }
 
-        public override void DefineSettings(Settings settings) { allSettings = settings; }
-
-        protected override void OnEnabled() {
-            base.OnEnabled();
-            
+        protected override void OnLoad() {
             displayedEvents = new List<EventSummary>();
+        }
 
-            //AddSectionTab("World Boss and Meta Timers", "world-bosses", BuildSettingPanel());
+        public override void OnStart() {
             AddSectionTab("Events and Timers", "1466345", BuildSettingPanel());
         }
 
@@ -90,7 +83,7 @@ namespace Blish_HUD.Modules.EventTimers {
             };
 
             foreach (var meta in Meta.Events) {
-                var es = new EventSummary(meta, allSettings) {
+                var es = new EventSummary(meta, this.Settings) {
                     Parent = eventPanel,
                     BasicTooltipText = meta.Category
                 };
@@ -219,11 +212,11 @@ namespace Blish_HUD.Modules.EventTimers {
             BHGw2Api.Meta.UpdateEventSchedules();
         }
 
-        protected override void OnDisabled() {
+        protected override void OnStop() {
             displayedEvents.ForEach(de => de.Dispose());
             displayedEvents.Clear();
 
-            base.OnDisabled();
+            base.OnStop();
         }
 
     }

@@ -11,7 +11,10 @@ using Blish_HUD.Annotations;
 using Microsoft.Scripting.Utils;
 
 namespace Blish_HUD {
-    public abstract class GameService :INotifyPropertyChanged {
+    public abstract class GameService : INotifyPropertyChanged {
+
+        public static event EventHandler<EventArgs> Ready;
+        public static bool GameServicesReady { get; protected set; }
 
         private static readonly GameService[] AllServices;
         public static IReadOnlyList<GameService> All => AllServices;
@@ -112,6 +115,9 @@ namespace Blish_HUD {
             GameServices.AddService<GameIntegrationService>(AllServices[11]);
             GameServices.AddService<HotkeysService>(AllServices[12]);
             GameServices.AddService<ModuleService>(AllServices[14]);
+
+            GameServicesReady = true;
+            Ready?.Invoke(null, EventArgs.Empty);
         }
 
         #region Property Binding

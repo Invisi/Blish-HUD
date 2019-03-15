@@ -15,10 +15,26 @@ namespace Blish_HUD.Controls {
         public event EventHandler<EventArgs> ValueChanged;
 
         private int _maxValue = 100;
-        public int MaxValue { get { return _maxValue; } set { if (_maxValue != value) { _maxValue = value; Invalidate(); } } }
+        public int MaxValue {
+            get => _maxValue;
+            set {
+                if (_maxValue == value) return;
+
+                _maxValue = value;
+                OnPropertyChanged();
+            }
+        }
 
         private int _minValue = 0;
-        public int MinValue { get { return _minValue; } set { if (_minValue != value) { _minValue = value; Invalidate(); } } }
+        public int MinValue {
+            get => _minValue;
+            set {
+                if (_minValue == value) return;
+
+                _minValue = value;
+                OnPropertyChanged();
+            }
+        }
 
         private float _value = 50;
         public float Value {
@@ -29,13 +45,17 @@ namespace Blish_HUD.Controls {
                 _value = MathHelper.Clamp(value, this.MinValue, this.MaxValue);
 
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(this.IntValue));
 
                 this.ValueChanged?.Invoke(this, new EventArgs());
             }
         }
 
-        public int IntValue { get { return (int)Math.Round(_value, 0); } }
-        
+        public int IntValue {
+            get => (int) Math.Round(_value, 0);
+            set => this.Value = value;
+        }
+
         private bool Dragging = false;
         private int DraggingOffset = 0;
 

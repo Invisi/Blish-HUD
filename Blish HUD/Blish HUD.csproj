@@ -192,6 +192,13 @@
     <Compile Include="GameServices\PathingService.cs" />
     <Compile Include="GameServices\ModuleService.cs" />
     <Compile Include="GameServices\GameIntegrationService.cs" />
+    <Compile Include="Library\Adhesive\Binding.cs" />
+    <Compile Include="Library\Adhesive\BindManager.cs" />
+    <Compile Include="Library\Adhesive\ExpressionHelper.cs" />
+    <Compile Include="Library\Adhesive\InitialBindingProcedure.cs" />
+    <Compile Include="Library\Adhesive\OneWayBinding.cs" />
+    <Compile Include="Library\Adhesive\TwoWayBinding.cs" />
+    <Compile Include="Library\Bind2.cs" />
     <Compile Include="Library\Bind\Bind.cs" />
     <Compile Include="Library\Glide\Ease.cs" />
     <Compile Include="Library\Glide\MemberAccessor.cs" />

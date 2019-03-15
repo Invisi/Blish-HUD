@@ -15,9 +15,7 @@ namespace Blish_HUD.Modules.MouseUsability {
 
         public MouseHighlight HorizontalHighlight;
         public MouseHighlight VerticalHighlight;
-
-        // TODO: Make this something useable elsewhere ("wait for pre-req" or something)
-        private Thread Prereq;
+        public Image CircleHighlight;
 
         public override ModuleInfo GetModuleInfo() {
             return new ModuleInfo(
@@ -30,64 +28,82 @@ namespace Blish_HUD.Modules.MouseUsability {
         }
 
         #region Settings
+        private SettingEntry<Color> _settingHighlightColor;
+        private SettingEntry<Color> _settingHighlightOutlineColor;
+        private SettingEntry<int>   _settingHighlightThickness;
+        private SettingEntry<int>   _settingHighlightOutlineThickness;
+        private SettingEntry<float> _settingHighlightOpacity;
 
-        // TODO: Rename these so that they're easier to work with - not quite sure what I was thinking
-        private SettingEntry<int> setting_hl_highlightColorId;
-        private SettingEntry<int> setting_hl_outlineColorId;
-        private SettingEntry<float> setting_hl_hightlightThickness;
-        private SettingEntry<float> setting_hl_outlineThickness;
-        private SettingEntry<float> setting_hl_highlightOpacity;
-
-        private SettingEntry<bool> setting_hl_showHighlight;
-        private SettingEntry<bool> setting_hl_showOverBlishHud;
+        private SettingEntry<bool> _settingShowCursorHighlight;
+        private SettingEntry<bool> _settingShowHighlightOverBlishHud;
 
         public override void DefineSettings(Settings settings) {
             // Define settings
-            setting_hl_highlightColorId = settings.DefineSetting<int>("mhl.highlightColorId", 1541, 1541);
-            setting_hl_outlineColorId = settings.DefineSetting<int>("mhl.outlineColorId", 1354, 1354);
-            setting_hl_hightlightThickness = settings.DefineSetting<float>("mhl.highlightThickness", 2.0f, 2.0f);
-            setting_hl_outlineThickness = settings.DefineSetting<float>("mhl.outlineThickness", 1.0f, 1.0f);
-            setting_hl_highlightOpacity = settings.DefineSetting<float>("mhl.highlightOpacity", 1.0f, 1.0f);
+            _settingHighlightColor = settings.DefineSetting<Color>("mhl.lines.highlightColor", Color.Red, Color.Red, true, "The color of the mouse highlight.");
+            _settingHighlightOutlineColor = settings.DefineSetting<Color>("mhl.lines.highlightOutlineColor", Color.Black, Color.Black, true, "The color of the mouse highlight outline.");
+            _settingHighlightThickness = settings.DefineSetting<int>("mhl.lines.highlightThickness", 2, 2, true, "The thickness of the mouse highlight.");
+            _settingHighlightOutlineThickness = settings.DefineSetting<int>("mhl.lines.outlineThickness", 1, 1, true, "The thickness of mouse highlight outline.");
+            _settingHighlightOpacity = settings.DefineSetting<float>("mhl.lines.highlightOpacity", 1.0f, 1.0f, true, "The opacity of the mouse highlight.");
 
-            setting_hl_showHighlight = settings.DefineSetting<bool>("mhl.showHighlight", false, false);
-            setting_hl_showOverBlishHud = settings.DefineSetting<bool>("mhl.showOverBh", true, true);
-
-            // Wiring up settings
-            //setting_hl_showHighlight.Set
+            _settingShowCursorHighlight = settings.DefineSetting<bool>("mhl.showHighlight", false, false, true, "If the highlight should be shown or not.");
+            _settingShowHighlightOverBlishHud = settings.DefineSetting<bool>("mhl.showOverBh", true, true, true, "Show the mouse highlight over top of the Blish HUD UI?");
         }
 
         #endregion
 
         protected override void OnLoad() {
-            base.OnLoad();
-
             HorizontalHighlight?.Dispose();
             VerticalHighlight?.Dispose();
+            CircleHighlight?.Dispose();
+        }
 
-            HorizontalHighlight = new MouseHighlight(MouseHighlight.Orientation.Horizontal);
-            VerticalHighlight = new MouseHighlight(MouseHighlight.Orientation.Vertical);
+        private MouseHighlight _top;
+        private MouseHighlight _right;
+        private MouseHighlight _bottom;
+        private MouseHighlight _left;
 
-            HorizontalHighlight.Parent = GameServices.GetService<GraphicsService>().SpriteScreen;
-            VerticalHighlight.Parent = GameServices.GetService<GraphicsService>().SpriteScreen;
+        public override void OnStart() {
+            HorizontalHighlight = new MouseHighlight {
+                HighlightOrientation = MouseHighlight.Orientation.Horizontal,
+                HighlightColor       = Color.Red,
+                Visible = false
+            };
+
+            VerticalHighlight = new MouseHighlight {
+                HighlightOrientation = MouseHighlight.Orientation.Vertical,
+                HighlightColor       = Color.Blue,
+                Visible = false
+            };
+
+            _top = new MouseHighlight() {
+                HighlightOrientation = MouseHighlight.Orientation.Vertical,
+                HighlightColor =  _settingHighlightColor.Value,
+                Visible = true,
+                Height = 1080
+            };
+
+            Binding.Create(() => _top.Location == (GameService.Input.MouseState != null ? new Point(GameService.Input.MouseState.X, GameService.Input.MouseState.Y) : Point.Zero));
+
+            CircleHighlight = new Image(GameService.Content.GetTexture("1032331-thick")) {
+                Location = GameService.Input.MouseState.Position - new Point(32, 32),
+                Parent = GameService.Graphics.SpriteScreen
+            };
+
+            HorizontalHighlight.Parent = GameService.Graphics.SpriteScreen;
+            VerticalHighlight.Parent = GameService.Graphics.SpriteScreen;
 
             // Update features to match saved settings state
-            HorizontalHighlight.Visible = setting_hl_showHighlight.Value;
-            VerticalHighlight.Visible = setting_hl_showHighlight.Value;
+            Binding.Create(() => HorizontalHighlight.Visible == _settingShowCursorHighlight.Value);
+            Binding.Create(() => VerticalHighlight.Visible == _settingShowCursorHighlight.Value);
+            //Binding.Create(() => HorizontalHighlight.HighlightThickness == _settingHighlightThickness.Value);
+            //Binding.Create(() => VerticalHighlight.HighlightThickness == _settingHighlightThickness.Value);
 
-            HorizontalHighlight.ZIndex = setting_hl_showOverBlishHud.Value ? int.MaxValue : 0;
-            VerticalHighlight.ZIndex = setting_hl_showOverBlishHud.Value ? int.MaxValue : 0;
+            HorizontalHighlight.ZIndex = _settingShowHighlightOverBlishHud.Value ? int.MaxValue : int.MinValue;
+            VerticalHighlight.ZIndex   = _settingShowHighlightOverBlishHud.Value ? int.MaxValue : int.MinValue;
 
-            Prereq = new Thread(MakeAvailable);
-            Prereq.Start();
-        }
-
-        private async void MakeAvailable() {
-            // TODO: this is incredibly nasty and should definitely not be here over pretty much any other location
-            //AllColors = await ApiItem.CallForManyAsync<DyeColor>("/v2/colors?ids=all", 5.Days(), true);
-
-            // Add tab with settings in the main Blish HUD window
             GameService.Director.BlishHudWindow.AddTab("Mouse Usability", "mouse-icon", BuildSettingPanel());
         }
+
 
         private Panel BuildSettingPanel() {
             var muPanel = new Panel();
@@ -99,7 +115,7 @@ namespace Blish_HUD.Modules.MouseUsability {
                 AutoSizeHeight = true,
                 AutoSizeWidth = true,
                 TextColor = Color.White,
-                Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size18, ContentService.FontStyle.Regular),
+                Font = GameService.Content.GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size18, ContentService.FontStyle.Regular),
             };
 
             var colorPicker = new ColorPicker() {
@@ -125,7 +141,7 @@ namespace Blish_HUD.Modules.MouseUsability {
                 VerticalAlignment = Utils.DrawUtil.VerticalAlignment.Middle,
                 AutoSizeWidth = true,
                 TextColor = Color.White,
-                Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+                Font = GameService.Content.GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
             };
 
             var cdd = new ColorDropdown() {
@@ -134,6 +150,18 @@ namespace Blish_HUD.Modules.MouseUsability {
                 Left = lblHighlightColor.Left,
                 Width = 150,
             };
+
+            var cb = new Checkbox() {
+                Parent = muPanel,
+                Top = cdd.Bottom + 10,
+                Left = cdd.Left,
+                Width = 120,
+                Text = "Show Highlight"
+            };
+
+            Binding.Create(() => cb.Checked == _settingShowCursorHighlight.Value);
+
+
             cdd.AddColorItem(Color.Red, "Red");
             cdd.AddColorItem(Color.Orange, "Orange");
             cdd.AddColorItem(Color.Yellow, "Yellow");
@@ -144,21 +172,85 @@ namespace Blish_HUD.Modules.MouseUsability {
             cdd.AddColorItem(Color.Magenta, "Magenta");
             cdd.AddColorItem(Color.Tan, "Tan");
             cdd.AddColorItem(Color.Cyan, "Cyan");
-            cdd.AddColorItem(Color.Olive, "Olive");
-            cdd.AddColorItem(Color.Maroon, "Maroon");
             cdd.AddColorItem(Color.Navy, "Navy");
-            cdd.AddColorItem(Color.Aquamarine, "Aquamarine");
-            cdd.AddColorItem(Color.Turquoise, "Turquoise");
-            cdd.AddColorItem(Color.Silver, "Silver");
             cdd.AddColorItem(Color.Lime, "Lime");
-            cdd.AddColorItem(Color.Teal, "Teal");
-            cdd.AddColorItem(Color.Indigo, "Indigo");
-            cdd.AddColorItem(Color.Violet, "Violet");
-            cdd.AddColorItem(Color.Pink, "Pink");
             cdd.AddColorItem(Color.White, "White");
             cdd.AddColorItem(Color.Gray, "Gray");
             cdd.AddColorItem(Color.Black, "Black");
 
+            Binding.Create(() => cdd.SelectedColor == _settingHighlightColor.Value);
+
+            var lblOpacity = new Label() {
+                Parent         = muPanel,
+                Top            = cb.Bottom + 6,
+                Left           = cb.Left,
+                Text           = "Opacity",
+                AutoSizeHeight = true,
+                AutoSizeWidth  = true,
+                TextColor      = Color.White,
+                Font           = GameService.Content.GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+            };
+
+            var tbOpacity = new TrackBar() {
+                Parent   = muPanel,
+                Top      = lblOpacity.Bottom + 5,
+                Left     = lblOpacity.Left,
+                MinValue = 0,
+                MaxValue = 1,
+                Value    = 1.0f,
+            };
+
+            Binding.Create(() => tbOpacity.Value == _settingHighlightOpacity.Value);
+
+            var lblThickness = new Label() {
+                Parent         = muPanel,
+                Top            = tbOpacity.Bottom + 6,
+                Left           = tbOpacity.Left,
+                Text           = "Thickness",
+                AutoSizeHeight = true,
+                AutoSizeWidth  = true,
+                TextColor      = Color.White,
+                Font           = GameService.Content.GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
+            };
+
+            var tbThickness = new TrackBar() {
+                Parent   = muPanel,
+                Top      = lblThickness.Bottom + 5,
+                Left     = lblThickness.Left,
+                MinValue = 1,
+                MaxValue = 7,
+                Value    = 1,
+            };
+
+            //Binding.Create(() => tbThickness.IntValue == _settingHighlightThickness.Value);
+
+            var nbinding = new Library.Adhesive.TwoWayBinding<int, int>(
+                                                         () => tbThickness.IntValue,
+                                                         () => _settingHighlightThickness.Value
+                                                        );
+
+            //new Library.Adhesive.TwoWayBinding<Color, Color>(() => HorizontalHighlight.HighlightColor, () => _settingHighlightColor.Value);
+            //new Library.Adhesive.TwoWayBinding<int, int>(() => HorizontalHighlight.HighlightThickness, () => _settingHighlightThickness.Value);
+            //new Library.Adhesive.TwoWayBinding<float, float>(() => HorizontalHighlight.Opacity, () => _settingHighlightOpacity.Value);
+
+            //new Library.Adhesive.TwoWayBinding<Color, Color>(() => VerticalHighlight.HighlightColor, () => _settingHighlightColor.Value);
+            //new Library.Adhesive.TwoWayBinding<int, int>(() => VerticalHighlight.HighlightThickness, () => _settingHighlightThickness.Value);
+            //new Library.Adhesive.TwoWayBinding<float, float>(() => VerticalHighlight.Opacity, () => _settingHighlightOpacity.Value);
+
+            Binding.Create(() =>
+                               HorizontalHighlight.HighlightColor == _settingHighlightColor.Value &&
+                               HorizontalHighlight.HighlightThickness == _settingHighlightThickness.Value &&
+                               HorizontalHighlight.Opacity == _settingHighlightOpacity.Value
+                             &&
+                               VerticalHighlight.HighlightColor == _settingHighlightColor.Value &&
+                               VerticalHighlight.HighlightThickness == _settingHighlightThickness.Value &&
+                               VerticalHighlight.Opacity == _settingHighlightOpacity.Value
+                             &&
+                               CircleHighlight.Color == _settingHighlightColor.Value
+                          );
+            
+
+            #region old code
             //var highlightColor = new ColorBox() {
             //    Parent = muPanel,
             //    Top = colorPicker.Bottom + 10,
@@ -208,26 +300,6 @@ namespace Blish_HUD.Modules.MouseUsability {
             //    Text = "Show Mouse Highlight Over Blish HUD UI",
             //    Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
             //    Checked = setting_hl_showOverBlishHud.Value,
-            //};
-
-            //var lblOpacity = new Label() {
-            //    Parent = muPanel,
-            //    Top = cbShowOverUI.Bottom + 6,
-            //    Left = cbShowOverUI.Left,
-            //    Text = "Opacity",
-            //    AutoSizeHeight = true,
-            //    AutoSizeWidth = true,
-            //    TextColor = Color.White,
-            //    Font = GameServices.GetService<ContentService>().GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size14, ContentService.FontStyle.Regular),
-            //};
-
-            //var tbOpacity = new TrackBar() {
-            //    Parent = muPanel,
-            //    Top = lblOpacity.Top + lblOpacity.Height / 2 - 8,
-            //    Left = cpScroller.Right - 256,
-            //    MinValue = 0,
-            //    MaxValue = 1,
-            //    Value = 1.0f,
             //};
 
             //var lblHighlightThickness = new Label() {
@@ -300,23 +372,23 @@ namespace Blish_HUD.Modules.MouseUsability {
             //outlineColor.ColorChanged += delegate { HorizontalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); VerticalHighlight.OutlineColor = outlineColor.Color.Leather.Rgb.ToXnaColor(); };
 
             //colorPicker.AssociatedColorBox = highlightColor;
+            #endregion
 
             return muPanel;
         }
 
         public override void Update(GameTime gameTime) {
             base.Update(gameTime);
-
-            //if (GameServices.GetService<GraphicsService>().SpriteScreen.MouseOver) {
-            if (GameServices.GetService<InputService>().MouseHidden) return;
-
-            HorizontalHighlight.Top = GameServices.GetService<InputService>().MouseState.Position.Y - HorizontalHighlight.Height / 2;
-            VerticalHighlight.Left = GameServices.GetService<InputService>().MouseState.Position.X - VerticalHighlight.Width / 2;
-            //}
+            
+            if (GameService.Input.MouseHidden) return;
+            
+            HorizontalHighlight.Top = GameService.Input.MouseState.Position.Y - HorizontalHighlight.Height / 2;
+            VerticalHighlight.Left = GameService.Input.MouseState.Position.X - VerticalHighlight.Width / 2;
+            CircleHighlight.Location = GameService.Input.MouseState.Position - new Point(32, 32);
         }
 
-        protected override void OnDisabled() {
-            base.OnDisabled();
+        protected override void OnStop() {
+            base.OnStop();
 
             HorizontalHighlight?.Dispose();
             VerticalHighlight?.Dispose();

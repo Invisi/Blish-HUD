@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Blish_HUD {
 
     /// <remarks>
-    /// Heavily based on code written by "" at https://roy-t.nl/2010/08/25/xna-accessing-contentmanager-and-graphicsdevice-anywhere-anytime-the-gameservicecontainer.html
+    /// Heavily based on code written by "Roy T." at https://roy-t.nl/2010/08/25/xna-accessing-contentmanager-and-graphicsdevice-anywhere-anytime-the-gameservicecontainer.html
     /// </remarks>
     public static class GameServices {
 

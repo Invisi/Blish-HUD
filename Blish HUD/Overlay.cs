@@ -135,7 +135,6 @@ namespace Blish_HUD {
         /// all of your content.
         /// </summary>
         protected override void LoadContent() {
-
             BHGw2Api.Settings.Load();
 
             // Create a new SpriteBatch, which can be used to draw textures.

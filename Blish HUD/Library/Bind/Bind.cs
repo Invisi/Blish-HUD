@@ -96,7 +96,9 @@ namespace Praeclarum.Bind {
                 if (f != null) {
                     f.SetValue(target, value);
                 } else if (p != null) {
-                    p.SetValue(target, value, null);
+                    //if (p.CanWrite) { // Change made per https://github.com/praeclarum/Bind/issues/9
+                        p.SetValue(target, value, null);
+                    //}
                 } else {
                     ReportError("Trying to SetValue on " + mem.GetType() + " member");
                     return false;
@@ -194,10 +196,10 @@ namespace Praeclarum.Bind {
                 var body = Expression.Call(Expression.Constant(d), d.GetType().GetTypeInfo().GetDeclaredMethod("Invoke"));
                 var lambda = Expression.Lambda(body, parameters);
 
-                return lambda.Compile(); // From PR https://github.com/praeclarum/Bind/pull/3/commits/da275e8d09a59a4b909b49f0f53c64b3a009286a
+                //return lambda.Compile(); // From PR https://github.com/praeclarum/Bind/pull/3/commits/da275e8d09a59a4b909b49f0f53c64b3a009286a
 
-                //var delegateInvokeInfo = lambda.Compile().GetMethodInfo();
-                //return delegateInvokeInfo.CreateDelegate(handlerType, null);
+                var delegateInvokeInfo = lambda.Compile().GetMethodInfo();
+                return delegateInvokeInfo.CreateDelegate(handlerType, null);
             }
 
             void UnsubscribeFromChangeNotificationEvent() {

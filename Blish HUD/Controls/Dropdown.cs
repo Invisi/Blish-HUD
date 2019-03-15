@@ -39,6 +39,10 @@ namespace Blish_HUD.Controls {
                 Input.RightMouseButtonPressed += Input_MousedOffDropdownPanel;
             }
 
+            protected override CaptureType CapturesInput() {
+                return CaptureType.Mouse;
+            }
+
             public static DropdownPanel ShowPanel(Dropdown assocDropdown) {
                 return new DropdownPanel(assocDropdown);
             }

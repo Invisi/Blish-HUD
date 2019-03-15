@@ -103,7 +103,7 @@ namespace Blish_HUD.Modules {
         }
 
         private void InitRichPresence() {
-            if (!this.Enabled) return;
+            if (!this.ModuleEnabled) return;
 
             try {
                 startTime = GameService.GameIntegration.Gw2Process.StartTime.ToUniversalTime();
@@ -124,7 +124,7 @@ namespace Blish_HUD.Modules {
             rpcClient = null;
         }
 
-        protected override void OnEnabled() {
+        public override void OnStart() {
             // Update character name
             GameService.Player.OnCharacterNameChanged += delegate { UpdateDetails(); };
 
@@ -141,8 +141,8 @@ namespace Blish_HUD.Modules {
                 InitRichPresence();
         }
 
-        protected override void OnDisabled() {
-            base.OnDisabled();
+        protected override void OnStop() {
+            base.OnStop();
 
             CleanUpRichPresence();
         }

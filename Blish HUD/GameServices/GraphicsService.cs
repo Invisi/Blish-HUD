@@ -34,7 +34,6 @@ namespace Blish_HUD {
         }
 
         private UiScale _uiScale = UiScale.Normal;
-
         public UiScale UIScale {
             get => _uiScale;
             set {
@@ -70,6 +69,8 @@ namespace Blish_HUD {
 
                 float uiScale = GetScaleRatio(this.UIScale);
                 this.SpriteScreen.Size = new Point((int)(value.X / uiScale), (int)(value.Y / uiScale));
+
+                OnPropertyChanged();
             }
         }
 
@@ -80,7 +81,6 @@ namespace Blish_HUD {
             // If for some reason we lose the rendering device, just restart the application
             // Might do better error handling later on
             Overlay.GraphicsDevice.DeviceLost += delegate { Application.Restart(); };
-            //MainLoop.Form.Resize += delegate { this.Resolution = new Point(MainLoop.Form.Size.Width, MainLoop.Form.Size.Height); };
         }
 
         protected override void Load() { /* NOOP */ }

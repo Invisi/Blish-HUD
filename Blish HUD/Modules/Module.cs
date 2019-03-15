@@ -28,46 +28,82 @@ namespace Blish_HUD.Modules {
 
     public abstract class Module {
 
+        public event EventHandler<EventArgs> Loaded;
+        public event EventHandler<EventArgs> Enabled;
+        public event EventHandler<EventArgs> Disabled;
+
         public abstract ModuleInfo GetModuleInfo();
         public abstract void DefineSettings(Settings settings);
 
         public readonly Settings Settings;
-
-        protected bool _enabled = false;
         
-        private List<WindowTab2> TabsAdded = new List<WindowTab2>();
+        private List<WindowTab2> _tabsAdded = new List<WindowTab2>();
 
-        public bool Enabled {
-            get => _enabled;
+        private bool _moduleEnabled = false;
+        public bool ModuleEnabled {
+            get => _moduleEnabled;
             set {
-                if (_enabled == value) return;
+                if (_moduleEnabled == value) return;
 
-                _enabled = value;
+                _moduleEnabled = value;
 
-                if (_enabled) OnEnabled();
-                else OnDisabled();
+                if (_moduleEnabled) GameService.Module.LoadModule(this);
+                else OnStop();
             }
         }
 
-        protected bool Loaded = false;
+        private bool _hasLoaded = false;
+        public bool HasLoaded {
+            get => _hasLoaded;
+            set {
+                _hasLoaded = value;
+
+                if (_hasLoaded) OnLoaded(EventArgs.Empty);
+            }
+        }
+
 
         public Module() {
-            this.Settings = GameServices.GetService<SettingsService>()
-                .RegisterSettings(this.GetModuleInfo().Namespace, true);
+            this.Settings = GameService.Settings
+                                       .RegisterSettings(
+                                                         this.GetModuleInfo().Namespace,
+                                                         true
+                                                        );
 
             this.DefineSettings(this.Settings);
         }
 
-        protected virtual void OnLoad() { Loaded = true; }
-        protected virtual void OnEnabled() {
-            if (!Loaded) OnLoad();
+        public async Task<Module> Load() {
+            OnLoad();
+
+            return await Task.FromResult(this);
         }
 
-        protected virtual void OnDisabled() {
+        /// <summary>
+        /// Override this method to allow your module to load in content while other services and
+        /// modules are also loading.  Do not create controls as doing so may cause an exception -
+        /// create instances of controls in <see cref="OnStart"/> instead.  If the module fails to
+        /// load, it should throw an exception.
+        /// </summary>
+        protected virtual void OnLoad() { }
 
+        /* TODO: Consider making this protected virtual to match the event patterns used elsewhere
+                 I just don't currently see a reason why a module would need it since they can just
+                 stick it at the end of OnLoad */
+        private void OnLoaded(EventArgs e) {
+            this.Loaded?.Invoke(this, e);
+        }
+
+        /// <summary>
+        /// This method is called once <see cref="OnLoad"/> has successfully completed and all
+        /// <see cref="GameService"/>s have been loaded.
+        /// </summary>
+        public virtual void OnStart() { }
+
+        protected virtual void OnStop() {
             // Clear out any tabs that were made
-            foreach (var windowTab2 in TabsAdded) {
-                GameServices.GetService<DirectorService>().BlishHudWindow.RemoveTab(windowTab2);
+            foreach (var windowTab2 in _tabsAdded) {
+                GameService.Director.BlishHudWindow.RemoveTab(windowTab2);
             }
         }
         public virtual void Update(GameTime gameTime) { /* NOOP */ }
@@ -75,7 +111,7 @@ namespace Blish_HUD.Modules {
         // Module Options
 
         protected void AddSectionTab(string tabName, string icon, Panel panel) {
-            TabsAdded.Add(GameService.Director.BlishHudWindow.AddTab(tabName, icon, panel));
+            _tabsAdded.Add(GameService.Director.BlishHudWindow.AddTab(tabName, icon, panel));
         }
 
         protected void AddSettingsTab() {

@@ -22,6 +22,21 @@ namespace Blish_HUD.Controls {
             }
         }
 
+        private Color _color = Color.White;
+        public Color Color {
+            get => _color;
+            set {
+                if (_color == value) return;
+
+                _color = value;
+                OnPropertyChanged();
+            }
+        }
+
+        protected override CaptureType CapturesInput() {
+            return CaptureType.None;
+        }
+
         public Image() { /* NOOP */ }
 
         public Image(Texture2D texture) {
@@ -32,7 +47,7 @@ namespace Blish_HUD.Controls {
         protected override void Paint(SpriteBatch spriteBatch, Rectangle bounds) {
             if (_texture == null) return;
 
-            spriteBatch.Draw(this.Texture, bounds, Color.White);
+            spriteBatch.Draw(this.Texture, bounds, this.Color);
         }
 
     }

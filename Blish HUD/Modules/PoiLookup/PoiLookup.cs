@@ -33,7 +33,7 @@ namespace Blish_HUD.Modules.PoiLookup {
             settingHideWindowAfterSelection = settings.DefineSetting("Hide Window After Selection", true, true, true, "If enabled, the landmark search window will automatically hide after a landmark is selected from the results.");
         }
 
-        protected override void OnEnabled() {
+        public override void OnStart() {
             LandmarkSearchWindow = new PoiLookupWindow(this) {
                 Parent   = GameService.Graphics.SpriteScreen,
                 Location = GameService.Graphics.SpriteScreen.Size / new Point(2)
@@ -77,9 +77,8 @@ namespace Blish_HUD.Modules.PoiLookup {
             }
         }
 
-        protected override void OnDisabled() {
-            base.OnDisabled();
-
+        protected override void OnStop() {
+            base.OnStop();
             LandmarkSearch?.Dispose();
             LandmarkSearchWindow?.Dispose();
         }
